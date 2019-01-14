@@ -2,12 +2,15 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
   private cursorKeys: Phaser.Input.Keyboard.CursorKeys;
   private playerTexture: string;
   private playerNumber: number;
+  private life: number;
   private AWSD: any;
   private punch: Phaser.GameObjects.Rectangle;
   private punchX: number;
 
   constructor(params, playerNumber) {
     super(params.scene, params.x, params.x, params.texture, params.frame);
+
+    this.life = 2000;
 
     this.scene = params.scene;
     this.playerNumber = playerNumber;
@@ -118,38 +121,66 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     }
     if (this.cursorKeys.space.isDown) {
       this.anims.play(`${this.playerTexture}_punch`, true);
+      this.checkCollision("player2");
     } else if (this.cursorKeys.shift.isDown) {
       this.anims.play(`${this.playerTexture}_punch_up`, true);
       this.punch.setAlpha(1);
+      this.checkCollision("player2");
     }
   }
 
   handleInputForPlayerTwo(): void {
     if (this.AWSD.A.isDown) {
       this.setFlipX(true);
+
       this.anims.play(`${this.playerTexture}_walk`, true);
+
       this.setVelocityX(-500);
     } else if (this.AWSD.D.isDown) {
       this.setFlipX(false);
+
       this.anims.play(`${this.playerTexture}_walk`, true);
+
       this.setVelocityX(500);
     } else if (this.AWSD.W.isDown && this.body.touching.down) {
-      this.setVelocityY(-930);
       this.anims.play(`${this.playerTexture}_jump`, true);
+
+      this.setVelocityY(-930);
     } else {
-      this.anims.stop();
       this.punch.setAlpha(0);
+
+      this.anims.stop();
+
       this.setVelocityX(0);
     }
     if (this.AWSD.Q.isDown) {
+      this.punch.setAlpha(1);
+
       this.anims.play(`${this.playerTexture}_punch`, true);
+
+      this.checkCollision("player1");
     } else if (this.AWSD.R.isDown) {
       this.punch.setAlpha(1);
+
       this.anims.play(`${this.playerTexture}_punch_up`, true);
+
+      this.checkCollision("player1");
     }
   }
 
-  collisionHandler() {
-    return alert(1);
+  checkCollision(player: string): void {
+    if (
+      Phaser.Geom.Intersects.RectangleToRectangle(
+        this.scene[player].getBounds(),
+        this.punch.getBounds()
+      )
+    ) {
+      this.collisionHandler(player);
+    }
+  }
+
+  collisionHandler(player: string) {
+    this.scene[player]["life"] = this.scene[player]["life"] - 10;
+    console.log(this.scene[player]["life"]);
   }
 }

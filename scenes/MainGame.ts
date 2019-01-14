@@ -1,10 +1,11 @@
 import Player from "../objects/player";
+import { delay } from "q";
 
 export class MainGame extends Phaser.Scene {
   private player1: Phaser.Physics.Arcade.Sprite;
   private player2: Phaser.Physics.Arcade.Sprite;
 
-  private platforms: Phaser.Physics.Arcade.StaticGroup;
+  private ground: Phaser.Physics.Arcade.StaticGroup;
 
   constructor() {
     super({
@@ -15,7 +16,7 @@ export class MainGame extends Phaser.Scene {
   init(): void {
     this.player1 = null;
     this.player2 = null;
-    this.platforms = null;
+    this.ground = null;
   }
   create(): void {
     this.loadDecorations();
@@ -42,15 +43,19 @@ export class MainGame extends Phaser.Scene {
       2
     );
 
-    //  Collide the players each other and with boundaries
-    this.physics.add.collider(this.player1, this.platforms);
-    this.physics.add.collider(this.player2, this.platforms);
+    //  Collide the players each other and with ground
+    this.physics.add.collider(this.player1, this.ground);
+    this.physics.add.collider(this.player2, this.ground);
     this.physics.add.collider(this.player2, this.player1);
   }
 
   update() {
     this.player1.update();
     this.player2.update();
+
+    if(!this.player1["life"] || !this.player2["life"]){
+      alert("player is died")
+    }
   }
 
   loadDecorations(): void {
@@ -83,6 +88,26 @@ export class MainGame extends Phaser.Scene {
       repeat: Infinity
     });
 
+    const cat: Phaser.GameObjects.Sprite = this.add.sprite(662, 570, "cat");
+    cat.setFlipX(true);
+
+    this.anims.create({
+      key: "cat",
+      repeat: 3,
+      frames: this.anims.generateFrameNumbers("cat", {
+        start: 0,
+        end: 3
+      }),
+      frameRate: 2,
+      yoyo: true
+    });
+
+    cat.anims.play("cat");
+
+    this.time.addEvent{
+      delay:1000
+    }
+
     this.time.addEvent({
       delay: 8000,
       callback: () => {
@@ -91,7 +116,15 @@ export class MainGame extends Phaser.Scene {
       repeat: Infinity
     });
 
-    this.platforms = this.physics.add.staticGroup();
-    this.platforms.create(890, 1039, "ground");
+    this.time.addEvent({
+      delay: 8000,
+      callback: () => {
+        window_shadow_2.alpha = Math.round(Math.random());
+      },
+      repeat: Infinity
+    });
+
+    this.ground = this.physics.add.staticGroup();
+    this.ground.create(890, 1039, "ground");
   }
 }

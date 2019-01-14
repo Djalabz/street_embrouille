@@ -16,6 +16,11 @@ export class Preload extends Phaser.Scene {
     this.load.image("window_shadow", "assets/window_shadow.png");
     this.load.image("window_shadow_2", "assets/window_shadow_2.png");
 
+    this.load.spritesheet("cat", "assets/cat.png", {
+      frameHeight: 60,
+      frameWidth: 60
+    });
+
     //characters
     this.load.spritesheet("depardieu", "assets/depardieu.png", {
       frameWidth: 160,
