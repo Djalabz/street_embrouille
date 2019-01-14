@@ -13,6 +13,8 @@ export class Preload extends Phaser.Scene {
 
     //decorations
     this.load.image("flame", "assets/flame.png");
+    this.load.image("window_shadow", "assets/window_shadow.png");
+    this.load.image("window_shadow_2", "assets/window_shadow_2.png");
 
     //characters
     this.load.spritesheet("depardieu", "assets/depardieu.png", {
