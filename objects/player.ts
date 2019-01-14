@@ -105,26 +105,40 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
   handleInputForPlayerOne(): void {
     if (this.cursorKeys.left.isDown) {
       this.setFlipX(true);
+
       this.anims.play(`${this.playerTexture}_walk`, true);
+
       this.setVelocityX(-500);
     } else if (this.cursorKeys.right.isDown) {
       this.setFlipX(false);
+
       this.anims.play(`${this.playerTexture}_walk`, true);
+
       this.setVelocityX(500);
     } else if (this.cursorKeys.up.isDown && this.body.touching.down) {
       this.setVelocityY(-930);
+
       this.anims.play(`${this.playerTexture}_jump`, true);
-    } else {
+    } else if (this.body.touching.down) {
+      this.anims.play(`${this.playerTexture}_walk`, false);
+
       this.anims.stop();
+
       this.punch.setAlpha(0);
+
       this.setVelocityX(0);
     }
     if (this.cursorKeys.space.isDown) {
+      this.punch.setAlpha(0);
+
       this.anims.play(`${this.playerTexture}_punch`, true);
+
       this.checkCollision("player2");
     } else if (this.cursorKeys.shift.isDown) {
-      this.anims.play(`${this.playerTexture}_punch_up`, true);
       this.punch.setAlpha(1);
+
+      this.anims.play(`${this.playerTexture}_punch_up`, true);
+
       this.checkCollision("player2");
     }
   }
@@ -146,8 +160,10 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
       this.anims.play(`${this.playerTexture}_jump`, true);
 
       this.setVelocityY(-930);
-    } else {
+    } else if (this.body.touching.down) {
       this.punch.setAlpha(0);
+
+      this.anims.play(`${this.playerTexture}_walk`, false);
 
       this.anims.stop();
 
