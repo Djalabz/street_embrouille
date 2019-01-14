@@ -111,7 +111,13 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     } else if (this.cursorKeys.up.isDown && this.body.touching.down) {
       this.setVelocityY(-930);
       this.anims.play(`${this.playerTexture}_jump`, true);
-    } else {
+    }
+    else if (this.body.touching.down) {
+      this.anims.play(`${this.playerTexture}_walk`, false);
+      this.anims.stop();
+      this.setVelocityX(0);
+    }
+    else {
       this.anims.stop();
       this.punch.setAlpha(0);
       this.setVelocityX(0);
@@ -136,7 +142,13 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     } else if (this.AWSD.W.isDown && this.body.touching.down) {
       this.setVelocityY(-930);
       this.anims.play(`${this.playerTexture}_jump`, true);
-    } else {
+    }
+    else if (this.body.touching.down) {
+      this.anims.play(`${this.playerTexture}_walk`, false);
+      this.anims.stop();
+      this.setVelocityX(0);
+    }
+    else {
       this.anims.stop();
       this.punch.setAlpha(0);
       this.setVelocityX(0);
