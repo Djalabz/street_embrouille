@@ -1,5 +1,4 @@
 import Player from "../objects/player";
-import { delay } from "q";
 
 export class MainGame extends Phaser.Scene {
   private player1: Phaser.Physics.Arcade.Sprite;
@@ -24,8 +23,8 @@ export class MainGame extends Phaser.Scene {
     this.player1 = new Player(
       {
         scene: this,
-        x: 550,
-        y: 100,
+        x: 300,
+        y: 0,
         texture: "depardieu",
         frame: 0
       },
@@ -36,7 +35,7 @@ export class MainGame extends Phaser.Scene {
       {
         scene: this,
         x: 850,
-        y: 100,
+        y: 850,
         texture: "farikk",
         frame: 0
       },
@@ -53,8 +52,8 @@ export class MainGame extends Phaser.Scene {
     this.player1.update();
     this.player2.update();
 
-    if(!this.player1["life"] || !this.player2["life"]){
-      alert("player is died")
+    if (!this.player1["life"] || !this.player2["life"]) {
+      alert("player is died");
     }
   }
 
@@ -102,11 +101,12 @@ export class MainGame extends Phaser.Scene {
       yoyo: true
     });
 
-    cat.anims.play("cat");
-
-    this.time.addEvent{
-      delay:1000
-    }
+    this.time.addEvent({
+      delay: 5000,
+      callback: () => {
+        cat.anims.play("cat");
+      }
+    });
 
     this.time.addEvent({
       delay: 8000,

@@ -4,6 +4,9 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
   private playerNumber: number;
   private life: number;
   private AWSD: any;
+  private lifeBar: Phaser.GameObjects.Rectangle;
+  private lifeBarRed: Phaser.GameObjects.Rectangle;
+
   private punch: Phaser.GameObjects.Rectangle;
   private punchX: number;
 
@@ -25,7 +28,24 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
       0.3
     );
 
-    // this.punch.enable(this.punch, Phaser.Physics.Arcade);
+    this.lifeBarRed = this.scene.add.rectangle(
+      this.playerNumber === 1 ? 300 : 1380,
+      20,
+      500,
+      30,
+      0xff0000,
+      1
+    );
+
+    this.lifeBar = this.scene.add.rectangle(
+      this.playerNumber === 1 ? 300 : 1380,
+      20,
+      this.life / 4,
+      30,
+      0x0ebc79,
+      1
+    );
+
     this.punchX = 70;
     // physics
     this.scene.physics.world.enable(this);
@@ -100,6 +120,8 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     } else {
       this.punch.setPosition(this.x + this.punchX, this.y - 40);
     }
+
+    this.lifeBar.setDisplaySize(this.life / 4, 30);
   }
 
   handleInputForPlayerOne(): void {
@@ -120,16 +142,16 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
       this.anims.play(`${this.playerTexture}_jump`, true);
     } else if (this.body.touching.down) {
+      this.punch.setAlpha(0);
+
       this.anims.play(`${this.playerTexture}_walk`, false);
 
       this.anims.stop();
 
-      this.punch.setAlpha(0);
-
       this.setVelocityX(0);
     }
     if (this.cursorKeys.space.isDown) {
-      this.punch.setAlpha(0);
+      this.punch.setAlpha(1);
 
       this.anims.play(`${this.playerTexture}_punch`, true);
 

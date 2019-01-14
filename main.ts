@@ -10,7 +10,7 @@ const config: GameConfig = {
     default: "arcade",
     arcade: {
       gravity: { y: 2500 },
-      debug: true
+      debug: false
     }
   },
   scene: [Preload, MainGame]
