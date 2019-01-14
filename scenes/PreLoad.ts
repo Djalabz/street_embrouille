@@ -6,12 +6,16 @@ export class Preload extends Phaser.Scene {
   }
 
   preload(): void {
+    //background
     this.load.image("bg", "assets/bg.png");
+    //floor
     this.load.image("ground", "assets/ground.png");
 
+    //decorations
     this.load.image("flame", "assets/flame.png");
 
-    this.load.spritesheet("dude", "assets/depardieu.png", {
+    //characters
+    this.load.spritesheet("depardieu", "assets/depardieu.png", {
       frameWidth: 160,
       frameHeight: 303
     });
