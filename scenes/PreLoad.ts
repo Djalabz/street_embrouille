@@ -23,8 +23,8 @@ export class Preload extends Phaser.Scene {
 
     //characters
     this.load.spritesheet("depardieu", "assets/depardieu.png", {
-      frameWidth: 160,
-      frameHeight: 303
+      frameWidth: 300,
+      frameHeight: 350
     });
 
     this.load.spritesheet("farikk", "assets/farikk.png", {

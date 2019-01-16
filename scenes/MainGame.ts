@@ -31,6 +31,9 @@ export class MainGame extends Phaser.Scene {
       1
     );
 
+    this.player1.x = 1200;
+    this.player1.y = 100;
+
     this.player2 = new Player(
       {
         scene: this,
@@ -41,6 +44,8 @@ export class MainGame extends Phaser.Scene {
       },
       2
     );
+    this.player2.x = 200;
+    this.player2.y = 100;
 
     //  Collide the players each other and with ground
     this.physics.add.collider(this.player1, this.ground);

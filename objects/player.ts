@@ -1,3 +1,4 @@
+import { PLAYER_CONSTANTS } from "./constants/constants";
 export default class Player extends Phaser.Physics.Arcade.Sprite {
   private player1Controls: Phaser.Input.Keyboard.CursorKeys;
   private playerTexture: string;
@@ -8,55 +9,44 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
   private lifeBarBackground: Phaser.GameObjects.Rectangle;
   private isCrouch: boolean;
 
-  private punch: Phaser.GameObjects.Rectangle;
+  private punchHitBoxesPositions: any;
+  private punchHitBox: Phaser.GameObjects.Rectangle;
+  private punchUpHitBox: Phaser.GameObjects.Rectangle;
+  private punchUpX: number;
   private punchX: number;
 
   constructor(params, playerNumber) {
     super(params.scene, params.x, params.x, params.texture, params.frame);
 
-    this.life = 2000;
-
     this.scene = params.scene;
     this.playerNumber = playerNumber;
     this.playerTexture = params.texture;
 
-    this.punch = this.scene.add.rectangle(
-      this.x,
-      this.y,
-      40,
-      40,
-      0xff0000,
-      0.3
-    );
-
-    this.lifeBarBackground = this.scene.add.rectangle(
-      this.playerNumber === 1 ? 300 : 1380,
-      20,
-      500,
-      30,
-      0xff0000,
-      1
-    );
-
-    this.lifeBar = this.scene.add.rectangle(
-      this.playerNumber === 1 ? 300 : 1380,
-      20,
-      this.life / 4,
-      30,
-      0x0ebc79,
-      1
-    );
-
     //playerState
+
+    this.life = 2000;
     this.isCrouch = false;
     this.flipX = this.playerNumber === 1 ? true : false;
-    //hitboxes
-    this.punchX = 70;
+
+    this.setDisplaySize(
+      PLAYER_CONSTANTS[this.playerTexture].width,
+      PLAYER_CONSTANTS[this.playerTexture].height
+    );
+
+    //hitboxes positions
+    this.generateHitBoxes();
+    this.punchUpX = 70;
+    this.punchHitBoxesPositions = {
+      punch: { x: 60, y: 60 },
+      punchUp: { x: 70 }
+    };
 
     // physics
     this.scene.physics.world.enable(this);
+
     this.setCollideWorldBounds(true);
-    this.setSize(130, 300);
+    this.body.setMass(123);
+    this.body.checkCollision.up = false;
 
     //controls mapping
     this.player1Controls = this.scene.input.keyboard.createCursorKeys();
@@ -67,67 +57,59 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     this.configAnimations();
   }
   configAnimations(): void {
-    const idleConfig = {
+    this.scene.anims.create({
       key: `${this.playerTexture}_idle`,
       frames: this.scene.anims.generateFrameNumbers(this.playerTexture, {
         start: 0,
-        end: 1
+        end: 2
       }),
+      yoyo: true,
       repeat: 1,
-      frameRate: 1
-    };
+      frameRate: 7
+    });
 
-    const walkConfig = {
+    this.scene.anims.create({
       key: `${this.playerTexture}_walk`,
       frames: this.scene.anims.generateFrameNumbers(this.playerTexture, {
-        start: 0,
-        end: 3
+        start: 3,
+        end: 5
       }),
       repeat: 1,
-      frameRate: 27
-    };
+      frameRate: 20
+    });
 
-    const crouchConfig = {
+    this.scene.anims.create({
       key: `${this.playerTexture}_crouch`,
       frames: this.scene.anims.generateFrameNumbers(this.playerTexture, {
-        frames: [7]
+        frames: [9]
       }),
       repeat: 0,
       frameRate: 20
-    };
-
-    const jumpConfig = {
+    });
+    this.scene.anims.create({
       key: `${this.playerTexture}_jump`,
       frames: this.scene.anims.generateFrameNumbers(this.playerTexture, {
-        frames: [5]
+        frames: [7]
       }),
       frameRate: 20,
       repeat: 1
-    };
-
-    const punchConfig = {
+    });
+    this.scene.anims.create({
       key: `${this.playerTexture}_punch`,
       frames: this.scene.anims.generateFrameNumbers(this.playerTexture, {
-        frames: [4, 3]
+        frames: [6, 5]
       }),
       frameRate: 15,
       repeat: 0
-    };
-
-    const punchUpConfig = {
+    });
+    this.scene.anims.create({
       key: `${this.playerTexture}_punch_up`,
       frames: this.scene.anims.generateFrameNumbers(this.playerTexture, {
-        frames: [6, 3]
+        frames: [8, 5]
       }),
       frameRate: 13,
       repeat: 0
-    };
-    this.scene.anims.create(idleConfig);
-    this.scene.anims.create(walkConfig);
-    this.scene.anims.create(crouchConfig);
-    this.scene.anims.create(jumpConfig);
-    this.scene.anims.create(punchConfig);
-    this.scene.anims.create(punchUpConfig);
+    });
   }
 
   update(): void {
@@ -138,21 +120,36 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     }
 
     if (this.flipX) {
-      this.punch.setPosition(this.x - this.punchX, this.y - 40);
+      this.punchUpHitBox.setPosition(
+        this.x - this.punchHitBoxesPositions.punchUp.x,
+        this.y - 40
+      );
+      this.punchHitBox.setPosition(
+        this.x - this.punchHitBoxesPositions.punch.x,
+        this.y - 40
+      );
     } else {
-      this.punch.setPosition(this.x + this.punchX, this.y - 40);
+      this.punchUpHitBox.setPosition(
+        this.x + this.punchHitBoxesPositions.punchUp,
+        this.y - 40
+      );
+      this.punchHitBox.setPosition(
+        this.x + this.punchHitBoxesPositions.punch.x,
+        this.y - 40
+      );
     }
 
     this.lifeBar.setDisplaySize(this.life / 4, 30);
   }
 
   handleInputForPlayerOne(): void {
+    this.punchUpHitBox.setAlpha(0);
+    this.punchHitBox.setAlpha(1);
     if (!this.anims.isPlaying) {
       this.anims.play(`${this.playerTexture}_idle`, true);
       this.isCrouch = false;
     }
 
-    this.punch.setAlpha(0);
     // turn & walk
     if (this.player1Controls.left.isDown) {
       this.setFlipX(true);
@@ -187,7 +184,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
       !this.isCrouch
     ) {
       this.anims.play(`${this.playerTexture}_punch`, true);
-      this.punch.setAlpha(1);
+      this.punchUpHitBox.setAlpha(1);
       this.checkCollision("player2");
       //punch Up
     } else if (
@@ -196,7 +193,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
       !this.isCrouch
     ) {
       this.anims.play(`${this.playerTexture}_punch_up`, true);
-      this.punch.setAlpha(1);
+      this.punchUpHitBox.setAlpha(1);
       this.checkCollision("player2");
     }
 
@@ -209,47 +206,65 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   handleInputForPlayerTwo(): void {
-    if (this.player2Controls.A.isDown && this.body.touching.down) {
+    this.punchUpHitBox.setAlpha(0);
+    this.punchHitBox.setAlpha(1);
+    if (!this.anims.isPlaying) {
+      this.anims.play(`${this.playerTexture}_idle`, true);
+      this.isCrouch = false;
+    }
+
+    // turn & walk
+    if (this.player2Controls.A.isDown) {
       this.setFlipX(true);
 
-      this.anims.play(`${this.playerTexture}_walk`, true);
-
-      this.setVelocityX(-500);
-    } else if (this.player2Controls.D.isDown && this.body.touching.down) {
+      if (!this.player2Controls.S.isDown) {
+        this.anims.play(`${this.playerTexture}_walk`, true);
+        this.setVelocityX(-500);
+      }
+    } else if (this.player2Controls.D.isDown) {
       this.setFlipX(false);
 
-      this.anims.play(`${this.playerTexture}_walk`, true);
-
-      this.setVelocityX(500);
-    } else if (this.player2Controls.W.isDown && this.body.touching.down) {
-      this.anims.play(`${this.playerTexture}_jump`, true);
-
-      this.setVelocityY(-1330);
-    } else if (this.body.touching.down) {
-      this.punch.setAlpha(0);
-
-      this.anims.play(`${this.playerTexture}_walk`, false);
-
-      this.anims.stop();
-
+      if (!this.player2Controls.S.isDown) {
+        this.anims.play(`${this.playerTexture}_walk`, true);
+        this.setVelocityX(500);
+      }
+    } else {
       this.setVelocityX(0);
+    }
+
+    // jump
+    if (this.player2Controls.W.isDown && this.body.touching.down) {
+      this.setVelocityY(-2000);
+      this.anims.play(`${this.playerTexture}_jump`, true);
     } else if (!this.body.touching.down) {
       this.anims.play(`${this.playerTexture}_jump`, true);
     }
-    if (Phaser.Input.Keyboard.JustDown(this.player2Controls.Q)) {
-      this.punch.setAlpha(1);
 
+    //punch
+    if (
+      Phaser.Input.Keyboard.JustDown(this.player2Controls.Q) &&
+      this.body.touching.down &&
+      !this.isCrouch
+    ) {
       this.anims.play(`${this.playerTexture}_punch`, true);
-
-      this.checkCollision("player1");
-    } else if (Phaser.Input.Keyboard.JustDown(this.player2Controls.R)) {
-      this.punch.setAlpha(1);
-
+      this.punchUpHitBox.setAlpha(1);
+      this.checkCollision("player2");
+      //punch Up
+    } else if (
+      Phaser.Input.Keyboard.JustDown(this.player2Controls.R) &&
+      this.body.touching.down &&
+      !this.isCrouch
+    ) {
       this.anims.play(`${this.playerTexture}_punch_up`, true);
+      this.punchUpHitBox.setAlpha(1);
+      this.checkCollision("player2");
+    }
 
-      this.checkCollision("player1");
-    } else if (this.player2Controls.S.isDown) {
+    //crouch
+    if (this.player2Controls.S.isDown) {
       this.anims.play(`${this.playerTexture}_crouch`, true);
+      this.setVelocityX(0);
+      this.isCrouch = true;
     }
   }
 
@@ -257,7 +272,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     if (
       Phaser.Geom.Intersects.RectangleToRectangle(
         this.scene[player].getBounds(),
-        this.punch.getBounds()
+        this.punchUpHitBox.getBounds()
       )
     ) {
       this.collisionHandler(player);
@@ -267,5 +282,43 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
   collisionHandler(player: string) {
     this.scene[player]["life"] = this.scene[player]["life"] - 10;
     console.log(this.scene[player]["life"]);
+  }
+
+  generateHitBoxes() {
+    this.punchHitBox = this.scene.add.rectangle(
+      this.x,
+      this.y,
+      40,
+      40,
+      0xff0000,
+      0.3
+    );
+
+    this.punchUpHitBox = this.scene.add.rectangle(
+      this.x,
+      this.y,
+      40,
+      40,
+      0xff0000,
+      0.3
+    );
+
+    this.lifeBarBackground = this.scene.add.rectangle(
+      this.playerNumber === 1 ? 300 : 1380,
+      20,
+      500,
+      30,
+      0xff0000,
+      1
+    );
+
+    this.lifeBar = this.scene.add.rectangle(
+      this.playerNumber === 1 ? 300 : 1380,
+      20,
+      this.life / 4,
+      30,
+      0x0ebc79,
+      1
+    );
   }
 }
