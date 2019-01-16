@@ -9,8 +9,8 @@ const config: GameConfig = {
   physics: {
     default: "arcade",
     arcade: {
-      gravity: { y: 2500 },
-      debug: false
+      gravity: { y: 6000 },
+      debug: true
     }
   },
   scene: [Preload, MainGame]

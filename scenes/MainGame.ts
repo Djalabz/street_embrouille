@@ -23,8 +23,8 @@ export class MainGame extends Phaser.Scene {
     this.player1 = new Player(
       {
         scene: this,
-        x: 300,
-        y: 0,
+        x: 860,
+        y: 800,
         texture: "depardieu",
         frame: 0
       },
@@ -34,7 +34,7 @@ export class MainGame extends Phaser.Scene {
     this.player2 = new Player(
       {
         scene: this,
-        x: 850,
+        x: 250,
         y: 850,
         texture: "farikk",
         frame: 0
@@ -58,6 +58,7 @@ export class MainGame extends Phaser.Scene {
   }
 
   loadDecorations(): void {
+    // load background
     this.add.image(-100, -30, "bg").setOrigin(0, 0);
     const flame: Phaser.GameObjects.Sprite = this.add
       .sprite(-100, -30, "flame")
@@ -92,21 +93,16 @@ export class MainGame extends Phaser.Scene {
 
     this.anims.create({
       key: "cat",
-      repeat: 3,
+      repeat: Infinity,
       frames: this.anims.generateFrameNumbers("cat", {
         start: 0,
         end: 3
       }),
-      frameRate: 2,
+      frameRate: 4,
       yoyo: true
     });
 
-    this.time.addEvent({
-      delay: 5000,
-      callback: () => {
-        cat.anims.play("cat");
-      }
-    });
+    cat.anims.play("cat");
 
     this.time.addEvent({
       delay: 8000,
