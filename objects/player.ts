@@ -9,7 +9,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
   private lifeBarBackground: Phaser.GameObjects.Rectangle;
   private isCrouch: boolean;
 
-  private punchHitBoxesPositions: any;
+  private hitBoxsPos: any;
   private punchHitBox: Phaser.GameObjects.Rectangle;
   private punchUpHitBox: Phaser.GameObjects.Rectangle;
   private punchUpX: number;
@@ -21,9 +21,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     this.scene = params.scene;
     this.playerNumber = playerNumber;
     this.playerTexture = params.texture;
-
     //playerState
-
     this.life = 2000;
     this.isCrouch = false;
     this.flipX = this.playerNumber === 1 ? true : false;
@@ -34,16 +32,21 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     );
 
     //hitboxes positions
-    this.generateHitBoxes();
     this.punchUpX = 70;
-    this.punchHitBoxesPositions = {
-      punch: { x: 60, y: 60 },
-      punchUp: { x: 70 }
+    this.hitBoxsPos = {
+      punch: { x: 60, y: 10 },
+      punchUp: { x: 90, y: 50 }
     };
+    this.generateHitBoxes();
 
     // physics
-    this.scene.physics.world.enable(this);
 
+    this.scene.physics.world.enable(this);
+    this.body.setSize(110, 300);
+    this.body.setOffset(
+      PLAYER_CONSTANTS[this.playerTexture].offSetX,
+      PLAYER_CONSTANTS[this.playerTexture].offSetY
+    );
     this.setCollideWorldBounds(true);
     this.body.setMass(123);
     this.body.checkCollision.up = false;
@@ -120,30 +123,39 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     }
 
     if (this.flipX) {
+      this.body.setOffset(
+        PLAYER_CONSTANTS[this.playerTexture].offSetX,
+        (PLAYER_CONSTANTS[this.playerTexture].offSetY *= +1)
+      );
+
       this.punchUpHitBox.setPosition(
-        this.x - this.punchHitBoxesPositions.punchUp.x,
-        this.y - 40
+        this.x - this.hitBoxsPos.punchUp.x,
+        this.y - this.hitBoxsPos.punchUp.y
       );
       this.punchHitBox.setPosition(
-        this.x - this.punchHitBoxesPositions.punch.x,
-        this.y - 40
+        this.x - this.hitBoxsPos.punch.x,
+        this.y - this.hitBoxsPos.punch.y
       );
     } else {
-      this.punchUpHitBox.setPosition(
-        this.x + this.punchHitBoxesPositions.punchUp,
-        this.y - 40
+      this.body.setOffset(
+        PLAYER_CONSTANTS[this.playerTexture].offSetX - 120,
+        PLAYER_CONSTANTS[this.playerTexture].offSetY
       );
+
       this.punchHitBox.setPosition(
-        this.x + this.punchHitBoxesPositions.punch.x,
-        this.y - 40
+        this.x + this.hitBoxsPos.punchUp.x,
+        this.y + this.hitBoxsPos.punchUp.y
+      );
+      this.punchUpHitBox.setPosition(
+        this.x + this.hitBoxsPos.punch.x,
+        this.y + this.hitBoxsPos.punch.y
       );
     }
-
     this.lifeBar.setDisplaySize(this.life / 4, 30);
   }
 
   handleInputForPlayerOne(): void {
-    this.punchUpHitBox.setAlpha(0);
+    this.punchUpHitBox.setAlpha(1);
     this.punchHitBox.setAlpha(1);
     if (!this.anims.isPlaying) {
       this.anims.play(`${this.playerTexture}_idle`, true);
@@ -248,7 +260,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     ) {
       this.anims.play(`${this.playerTexture}_punch`, true);
       this.punchUpHitBox.setAlpha(1);
-      this.checkCollision("player2");
+      this.checkCollision("player1");
       //punch Up
     } else if (
       Phaser.Input.Keyboard.JustDown(this.player2Controls.R) &&
@@ -257,7 +269,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     ) {
       this.anims.play(`${this.playerTexture}_punch_up`, true);
       this.punchUpHitBox.setAlpha(1);
-      this.checkCollision("player2");
+      this.checkCollision("player1");
     }
 
     //crouch
@@ -280,14 +292,14 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   collisionHandler(player: string) {
-    this.scene[player]["life"] = this.scene[player]["life"] - 10;
+    this.scene[player]["life"] = this.scene[player]["life"] - 50;
     console.log(this.scene[player]["life"]);
   }
 
   generateHitBoxes() {
     this.punchHitBox = this.scene.add.rectangle(
-      this.x,
-      this.y,
+      this.x + this.hitBoxsPos.punch.x,
+      this.y + this.hitBoxsPos.punch.y,
       40,
       40,
       0xff0000,
@@ -295,11 +307,11 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     );
 
     this.punchUpHitBox = this.scene.add.rectangle(
-      this.x,
-      this.y,
+      this.x + this.hitBoxsPos.punchUp.x,
+      this.y + this.hitBoxsPos.punchUp.y,
       40,
       40,
-      0xff0000,
+      0xc8d0d9,
       0.3
     );
 
