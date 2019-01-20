@@ -1,13 +1,16 @@
 import { PLAYER_CONSTANTS as P } from "./constants/constants";
+import { Game, LEFT } from "phaser";
 export default class Player extends Phaser.Physics.Arcade.Sprite {
   private player1Controls: Phaser.Input.Keyboard.CursorKeys;
   private player2Controls: Phaser.Input.Keyboard.Key;
+  private player1Guard: Phaser.Input.Keyboard.KeyCodes;
   private playerTexture: string;
   private playerNumber: number;
   private life: number;
   private lifeBar: Phaser.GameObjects.Rectangle;
   private lifeBarBackground: Phaser.GameObjects.Rectangle;
   private isCrouch: boolean;
+  private guard: boolean;
 
   private hitBoxsPos: any;
   private punchHitBox: Phaser.GameObjects.Rectangle;
@@ -23,6 +26,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     //playerState
     this.life = 2000;
     this.isCrouch = false;
+    this.guard = false;
     this.flipX = this.playerNumber === 1 ? true : false;
 
     this.setDisplaySize(
@@ -38,17 +42,38 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
       P[this.playerTexture].offSetY
     );
     this.setCollideWorldBounds(true);
-    this.body.setMass(123);
     this.body.checkCollision.up = false;
 
     //controls mapping
     this.player1Controls = this.scene.input.keyboard.createCursorKeys();
-    this.player2Controls = this.scene.input.keyboard.addKeys("W,S,A,D,Q,R");
+    this.player2Controls = this.scene.input.keyboard.addKeys("W,S,A,D,Q,R,C");
+    this.player1Guard = this.scene.input.keyboard.addKeys("L");
 
     this.scene.add.existing(this);
 
     this.generateHitBoxes();
     this.configAnimations();
+
+    new Phaser.Input.Keyboard.KeyCombo(this.scene.input.keyboard, [37, 37], {
+      maxKeyDelay: 200,
+      resetOnMatch: true
+    });
+
+    new Phaser.Input.Keyboard.KeyCombo(this.scene.input.keyboard, [39, 39], {
+      maxKeyDelay: 200,
+      resetOnMatch: true
+    });
+
+    this.scene.input.keyboard.on("keycombomatch", event => {
+      if (event.current === 37) {
+        this.scene["player2"].setVelocityY(-1000);
+        this.scene["player2"].setVelocityX(-5000);
+        return;
+      } else if (event.current === 39) {
+        this.scene["player2"].setVelocityY(-1000);
+        this.scene["player2"].setVelocityX(5000);
+      }
+    });
   }
   configAnimations(): void {
     P[this.playerTexture].anims.forEach(anim => {
@@ -57,7 +82,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         frames: this.scene.anims.generateFrameNumbers(this.playerTexture, {
           frames: anim.frames
         }),
-        yoyo: anim.yoyo,
+        yoyo: anim.yoyo || false,
         repeat: anim.repeat,
         frameRate: anim.frameRate
       });
@@ -119,8 +144,10 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   handleInputForPlayerOne(): void {
-    this.punchUpHitBox.setAlpha(1);
-    this.punchHitBox.setAlpha(1);
+    this.punchUpHitBox.setAlpha(0);
+    this.punchHitBox.setAlpha(0);
+    this.guard = false;
+
     if (!this.anims.isPlaying) {
       this.anims.play(`${this.playerTexture}_idle`, true);
       this.isCrouch = false;
@@ -128,21 +155,27 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
     // turn & walk
     if (this.player1Controls.left.isDown) {
-      this.setFlipX(true);
+      if (this.body.touching.down) {
+        this.setFlipX(true);
+      }
 
       if (!this.player1Controls.down.isDown) {
         this.anims.play(`${this.playerTexture}_walk`, true);
         this.setVelocityX(-500);
       }
     } else if (this.player1Controls.right.isDown) {
-      this.setFlipX(false);
+      if (this.body.touching.down) {
+        this.setFlipX(false);
+      }
 
       if (!this.player1Controls.down.isDown) {
         this.anims.play(`${this.playerTexture}_walk`, true);
         this.setVelocityX(500);
       }
     } else {
-      this.setVelocityX(0);
+      if (this.body.touching.down) {
+        this.setVelocityX(0);
+      }
     }
 
     // jump
@@ -161,7 +194,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     ) {
       this.anims.play(`${this.playerTexture}_punch`, true);
       this.punchUpHitBox.setAlpha(1);
-      this.checkCollision("player2");
+      this.checkCollision("player1");
       //punch Up
     } else if (
       Phaser.Input.Keyboard.JustDown(this.player1Controls.shift) &&
@@ -170,20 +203,28 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     ) {
       this.anims.play(`${this.playerTexture}_punch_up`, true);
       this.punchUpHitBox.setAlpha(1);
-      this.checkCollision("player2");
+      this.checkCollision("player1");
     }
 
     //crouch
     if (this.player1Controls.down.isDown) {
       this.anims.play(`${this.playerTexture}_crouch`, true);
       this.setVelocityX(0);
+      this.setVelocityY(1700);
       this.isCrouch = true;
+    }
+
+    //guard
+    if (this.player1Guard.L.isDown) {
+      this.anims.play(`${this.playerTexture}_guard`, true);
+      this.guard = true;
     }
   }
 
   handleInputForPlayerTwo(): void {
-    this.punchUpHitBox.setAlpha(1);
-    this.punchHitBox.setAlpha(1);
+    this.guard = false;
+    this.punchUpHitBox.setAlpha(0);
+    this.punchHitBox.setAlpha(0);
     if (!this.anims.isPlaying) {
       this.anims.play(`${this.playerTexture}_idle`, true);
       this.isCrouch = false;
@@ -224,7 +265,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     ) {
       this.anims.play(`${this.playerTexture}_punch`, true);
       this.punchUpHitBox.setAlpha(1);
-      this.checkCollision("player1");
+      this.checkCollision("player2");
       //punch Up
     } else if (
       Phaser.Input.Keyboard.JustDown(this.player2Controls.R) &&
@@ -233,7 +274,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     ) {
       this.anims.play(`${this.playerTexture}_punch_up`, true);
       this.punchUpHitBox.setAlpha(1);
-      this.checkCollision("player1");
+      this.checkCollision("player2");
     }
 
     //crouch
@@ -242,6 +283,12 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
       this.setVelocityX(0);
       this.isCrouch = true;
     }
+
+    //guard
+    if (this.player2Controls.C.isDown) {
+      this.anims.play(`${this.playerTexture}_guard`, true);
+      this.guard = true;
+    }
   }
 
   checkCollision(player: string): void {
@@ -249,17 +296,19 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
       Phaser.Geom.Intersects.RectangleToRectangle(
         this.scene[player].getBounds(),
         this.punchUpHitBox.getBounds()
-      )
+      ) &&
+      !this.scene[player]["guard"]
     ) {
       this.collisionHandler(player);
     }
   }
 
   collisionHandler(player: string) {
-    this.scene[player]["life"] = this.scene[player]["life"] - 50;
+    this.scene[player]["life"] += -50;
     this.scene[player].anims.play(
       `${this.scene[player].playerTexture}_knocked`
     );
+    this.scene["camera"].shake(20);
   }
 
   generateHitBoxes() {
@@ -267,8 +316,8 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     this.punchUpHitBox = this.scene.add.rectangle(0, 0, 40, 40, 0xc8d0d9, 0.3);
 
     this.lifeBarBackground = this.scene.add.rectangle(
-      this.playerNumber === 2 ? 300 : 1380,
-      20,
+      this.playerNumber === 2 ? 500 : 1380,
+      100,
       500,
       30,
       0xff0000,
@@ -276,12 +325,15 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     );
 
     this.lifeBar = this.scene.add.rectangle(
-      this.playerNumber === 2 ? 300 : 1380,
-      20,
+      this.playerNumber === 2 ? 500 : 1380,
+      100,
       this.life / 4,
       30,
       0x0ebc79,
       1
     );
+
+    this.lifeBar.setScrollFactor(0);
+    this.lifeBarBackground.setScrollFactor(0);
   }
 }

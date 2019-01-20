@@ -4,13 +4,13 @@ import { Preload } from "./scenes/PreLoad";
 
 const config: GameConfig = {
   type: Phaser.AUTO,
-  width: 1680,
-  height: 1050,
+  width: 1980,
+  height: 1080,
   physics: {
     default: "arcade",
     arcade: {
       gravity: { y: 6000 },
-      debug: true
+      debug: false
     }
   },
   scene: [Preload, MainGame]

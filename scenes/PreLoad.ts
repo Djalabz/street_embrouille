@@ -28,8 +28,8 @@ export class Preload extends Phaser.Scene {
     });
 
     this.load.spritesheet("farikk", "assets/farikk.png", {
-      frameWidth: 160,
-      frameHeight: 303
+      frameWidth: 300,
+      frameHeight: 350
     });
   }
   update(): void {
