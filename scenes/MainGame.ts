@@ -1,12 +1,11 @@
-import Player from "../objects/player";
+import { Player } from "../objects/player";
 
 export class MainGame extends Phaser.Scene {
-  private player1: Phaser.Physics.Arcade.Sprite;
-  private player2: Phaser.Physics.Arcade.Sprite;
+  player1: Phaser.Physics.Arcade.Sprite;
+  player2: Phaser.Physics.Arcade.Sprite;
 
-  private camera: Phaser.Cameras.Scene2D.BaseCamera;
-  private ground: Phaser.Physics.Arcade.StaticGroup;
-  private camera_line: Phaser.GameObjects.Line;
+  camera: Phaser.Cameras.Scene2D.Camera;
+  ground: Phaser.Physics.Arcade.StaticGroup;
 
   constructor() {
     super({
@@ -15,8 +14,6 @@ export class MainGame extends Phaser.Scene {
   }
 
   init(): void {
-    this.player1 = null;
-    this.player2 = null;
     this.ground = null;
   }
   create(): void {
