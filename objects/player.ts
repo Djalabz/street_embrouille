@@ -30,7 +30,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.guard = false;
     this.flipX = this.playerNumber === 1 ? true : false;
 
-    this.setSize(110, 300);
     this.setDisplaySize(
       P[this.playerTexture].width,
       P[this.playerTexture].height
@@ -44,6 +43,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     );
     this.setCollideWorldBounds(true);
     this.body.checkCollision.up = false;
+    this.setSize(110, 300);
 
     // Controls mapping
     this.controls = this.scene.input.keyboard.addKeys(
