@@ -1,11 +1,11 @@
 import { PLAYER_CONSTANTS as P } from "./constants/constants";
+import { CONTROLS } from "./constants/constants";
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
-  player1Controls: Phaser.Input.Keyboard.CursorKeys;
-  player2Controls: Phaser.Input.Keyboard.Key;
-  player1Guard: Phaser.Input.Keyboard.KeyCodes;
+  controls: any;
   playerTexture: string;
   playerNumber: number;
+  enemyNumber: number;
   life: number;
   lifeBar: Phaser.GameObjects.Rectangle;
   lifeBarBackground: Phaser.GameObjects.Rectangle;
@@ -21,14 +21,16 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     this.scene = params.scene;
     this.playerNumber = playerNumber;
+    this.enemyNumber = playerNumber === 1 ? 1 : 2;
     this.playerTexture = params.texture;
 
-    //playerState
+    // Player states
     this.life = 2000;
     this.isCrouch = false;
     this.guard = false;
     this.flipX = this.playerNumber === 1 ? true : false;
 
+    this.setSize(110, 300);
     this.setDisplaySize(
       P[this.playerTexture].width,
       P[this.playerTexture].height
@@ -36,7 +38,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     // physics
     this.scene.physics.world.enable(this);
-    this.setSize(110, 300);
     this.body.setOffset(
       P[this.playerTexture].offSetX,
       P[this.playerTexture].offSetY
@@ -44,16 +45,19 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.setCollideWorldBounds(true);
     this.body.checkCollision.up = false;
 
-    //controls mapping
-    this.player1Controls = this.scene.input.keyboard.createCursorKeys();
-    this.player2Controls = this.scene.input.keyboard.addKeys("W,S,A,D,Q,R,C");
-    this.player1Guard = this.scene.input.keyboard.addKeys("L");
+    // Controls mapping
+    this.controls = this.scene.input.keyboard.addKeys(
+      CONTROLS["player" + playerNumber]
+    );
 
+    // Adding player to scene, yes it's weird but this is what it is :)
     this.scene.add.existing(this);
 
     this.generateHitBoxes();
+    this.generateLifeBar();
     this.configAnimations();
 
+    // super COMBO touch event listener with delay
     new Phaser.Input.Keyboard.KeyCombo(this.scene.input.keyboard, [37, 37], {
       maxKeyDelay: 200,
       resetOnMatch: true
@@ -97,11 +101,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     //update life bar
     this.lifeBar.setDisplaySize(this.life / 4, 30);
 
-    if (this.playerNumber === 1) {
-      this.handleInputForPlayerOne();
-    } else {
-      this.handleInputForPlayerTwo();
-    }
+    this.handleInput();
 
     //flipX hitBoxes positions
     if (this.flipX) {
@@ -143,8 +143,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       );
     }
   }
-
-  handleInputForPlayerOne(): void {
+  /**
+   * Handle input of player
+   */
+  handleInput(): void {
     this.punchUpHitBox.setAlpha(0);
     this.punchHitBox.setAlpha(0);
     this.guard = false;
@@ -155,21 +157,21 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     }
 
     // turn & walk
-    if (this.player1Controls.left.isDown) {
+    if (this.controls.LEFT.isDown) {
       if (this.body.touching.down) {
         this.setFlipX(true);
       }
 
-      if (!this.player1Controls.down.isDown) {
+      if (!this.controls.DOWN.isDown) {
         this.anims.play(`${this.playerTexture}_walk`, true);
         this.setVelocityX(-500);
       }
-    } else if (this.player1Controls.right.isDown) {
+    } else if (this.controls.RIGHT.isDown) {
       if (this.body.touching.down) {
         this.setFlipX(false);
       }
 
-      if (!this.player1Controls.down.isDown) {
+      if (!this.controls.DOWN.isDown) {
         this.anims.play(`${this.playerTexture}_walk`, true);
         this.setVelocityX(500);
       }
@@ -180,7 +182,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     }
 
     // jump
-    if (this.player1Controls.up.isDown && this.body.touching.down) {
+    if (this.controls.UP.isDown && this.body.touching.down) {
       this.setVelocityY(-2500);
       this.anims.play(`${this.playerTexture}_jump`, true);
     } else if (!this.body.touching.down) {
@@ -189,28 +191,27 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     //punch
     if (
-      Phaser.Input.Keyboard.JustDown(this.player1Controls.space) &&
+      Phaser.Input.Keyboard.JustDown(this.controls.PUNCH) &&
       this.body.touching.down &&
       !this.isCrouch &&
-      !this.player1Guard.L.isDown
+      !this.controls.GUARD.isDown
     ) {
       this.anims.play(`${this.playerTexture}_punch`, true);
-      this.punchUpHitBox.setAlpha(1);
-      this.checkCollision("player1", this.anims.nextTick);
+      this.checkCollision(`player${this.enemyNumber}`, this.anims.nextTick);
+
       //punch Up
     } else if (
-      Phaser.Input.Keyboard.JustDown(this.player1Controls.shift) &&
+      Phaser.Input.Keyboard.JustDown(this.controls.PUNCH_UP) &&
       this.body.touching.down &&
       !this.isCrouch &&
-      !this.player1Guard.L.isDown
+      !this.controls.GUARD.isDown
     ) {
       this.anims.play(`${this.playerTexture}_punch_up`, true);
-      this.punchUpHitBox.setAlpha(1);
-      this.checkCollision("player1", this.anims.nextTick);
+      this.checkCollision(`player${this.enemyNumber}`, this.anims.nextTick);
     }
 
     //crouch
-    if (this.player1Controls.down.isDown) {
+    if (this.controls.DOWN.isDown) {
       this.anims.play(`${this.playerTexture}_crouch`, true);
       this.setVelocityX(0);
       this.setVelocityY(1700);
@@ -218,115 +219,42 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     }
 
     //guard
-    if (this.player1Guard.L.isDown) {
+    if (this.controls.GUARD.isDown) {
       this.anims.play(`${this.playerTexture}_guard`, true);
       this.guard = true;
     }
   }
 
-  handleInputForPlayerTwo(): void {
-    this.guard = false;
-    this.punchUpHitBox.setAlpha(0);
-    this.punchHitBox.setAlpha(0);
-    if (!this.anims.isPlaying) {
-      this.anims.play(`${this.playerTexture}_idle`, true);
-      this.isCrouch = false;
-    }
-
-    // turn & walk
-    if (this.player2Controls.A.isDown) {
-      this.setFlipX(true);
-
-      if (!this.player2Controls.S.isDown) {
-        this.anims.play(`${this.playerTexture}_walk`, true);
-        this.setVelocityX(-500);
-      }
-    } else if (this.player2Controls.D.isDown) {
-      this.setFlipX(false);
-
-      if (!this.player2Controls.S.isDown) {
-        this.anims.play(`${this.playerTexture}_walk`, true);
-        this.setVelocityX(500);
-      }
-    } else {
-      this.setVelocityX(0);
-    }
-
-    // jump
-    if (this.player2Controls.W.isDown && this.body.touching.down) {
-      this.setVelocityY(-2000);
-      this.anims.play(`${this.playerTexture}_jump`, true);
-    } else if (!this.body.touching.down) {
-      this.anims.play(`${this.playerTexture}_jump`, true);
-    }
-
-    //punch
-    if (
-      Phaser.Input.Keyboard.JustDown(this.player2Controls.Q) &&
-      this.body.touching.down &&
-      !this.isCrouch &&
-      !this.player2Controls.C.isDown
-    ) {
-      this.anims.play(`${this.playerTexture}_punch`, true);
-      this.punchUpHitBox.setAlpha(1);
-      this.checkCollision("player2", this.anims.nextTick);
-      //punch Up
-    } else if (
-      Phaser.Input.Keyboard.JustDown(this.player2Controls.R) &&
-      this.body.touching.down &&
-      !this.isCrouch &&
-      !this.player2Controls.C.isDown
-    ) {
-      this.anims.play(`${this.playerTexture}_punch_up`, true);
-      this.punchUpHitBox.setAlpha(1);
-      this.checkCollision("player2", this.anims.nextTick);
-    }
-
-    //crouch
-    if (this.player2Controls.S.isDown) {
-      this.anims.play(`${this.playerTexture}_crouch`, true);
-      this.setVelocityX(0);
-      this.setVelocityY(1700);
-      this.isCrouch = true;
-    }
-
-    //guard
-    if (this.player2Controls.C.isDown) {
-      this.anims.play(`${this.playerTexture}_guard`, true);
-      this.guard = true;
-    }
-  }
-
-  checkCollision(player: string, delay: number): void {
+  checkCollision(enemy: string, delay: number): void {
     this.scene.time.addEvent({
       delay,
       callback: () => {
         if (
           Phaser.Geom.Intersects.RectangleToRectangle(
-            this.scene[player].getBounds(),
+            this.scene[enemy].getBounds(),
             this.punchUpHitBox.getBounds()
           ) &&
-          !this.scene[player]["guard"]
+          !this.scene[enemy]["guard"]
         ) {
-          this.handleCollision(player);
+          this.handleCollision(enemy);
         }
       }
     });
   }
 
-  handleCollision(player: string): void {
+  handleCollision(enemy: string): void {
     this.setDepth(1);
-    this.scene[player].setDepth(0);
-    this.scene[player]["life"] += -50;
-    this.scene[player].anims.play(
-      `${this.scene[player].playerTexture}_knocked`
-    );
+    this.scene[enemy].setDepth(0);
+    this.scene[enemy]["life"] += -50;
+    this.scene[enemy].anims.play(`${this.scene[enemy].playerTexture}_knocked`);
   }
 
   generateHitBoxes(): void {
     this.punchHitBox = this.scene.add.rectangle(0, 0, 40, 40, 0xff0000, 0.3);
     this.punchUpHitBox = this.scene.add.rectangle(0, 0, 40, 40, 0xc8d0d9, 0.3);
+  }
 
+  generateLifeBar(): void {
     this.lifeBarBackground = this.scene.add.rectangle(
       this.playerNumber === 2 ? 500 : 1380,
       100,
