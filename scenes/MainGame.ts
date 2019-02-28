@@ -6,6 +6,7 @@ export class MainGame extends Phaser.Scene {
 
   camera: Phaser.Cameras.Scene2D.Camera;
   ground: Phaser.Physics.Arcade.StaticGroup;
+  music: Phaser.Sound.BaseSound;
 
   constructor() {
     super({
@@ -16,8 +17,13 @@ export class MainGame extends Phaser.Scene {
   init(): void {
     this.ground = null;
   }
+
   create(): void {
+    this.music = this.sound.add("music", { loop: true });
+    this.music.play();
+
     this.loadDecorations();
+
     this.player2 = new Player(
       {
         scene: this,
@@ -63,16 +69,19 @@ export class MainGame extends Phaser.Scene {
 
     if (!this.player1["life"]) {
       alert("player 1 defeated");
+      this.music.stop();
       this.scene.restart();
     } else if (!this.player2["life"]) {
       alert("player 2 defeated");
+      this.music.stop();
       this.scene.restart();
     }
   }
 
   loadDecorations(): void {
     // load background
-    const bg = this.add.image(0, 0, "bg").setOrigin(0, 0);
+    this.add.image(0, 0, "bg").setOrigin(0, 0);
+
     const flame: Phaser.GameObjects.Sprite = this.add
       .sprite(0, 0, "flame")
       .setOrigin(0, 0);

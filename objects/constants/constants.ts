@@ -46,14 +46,9 @@ export const PLAYER_CONSTANTS = {
       },
       { key: `_crouch`, frames: [10], repeat: 0, frameRate: 20 },
       { key: `_jump`, frames: [8], frameRate: 20, repeat: 1 },
-      {
-        key: `_punch`,
-        frames: [6, 7, 6],
-        frameRate: 8,
-        repeat: 0
-      },
-      { key: `_punch_up`, frames: [9], frameRate: 5, repeat: 0 },
-      { key: `_knocked`, frames: [11], frameRate: 6, repeat: 0 },
+      { key: `_punch`, frames: [6, 7, 6], frameRate: 8, repeat: 0 },
+      { key: `_punch_up`, frames: [12, 13, 14], frameRate: 10, repeat: 0 },
+      { key: `_knocked`, frames: [11], frameRate: 3, repeat: 0 },
       { key: `_guard`, frames: [12], frameRate: 6, repeat: 0 }
     ]
   },
@@ -83,9 +78,9 @@ export const PLAYER_CONSTANTS = {
       },
       { key: `_crouch`, frames: [9], repeat: 0, frameRate: 20 },
       { key: `_jump`, frames: [7], frameRate: 20, repeat: 1 },
-      { key: `_punch`, frames: [8, 9, 8], frameRate: 4, repeat: 0 },
-      { key: `_punch_up`, frames: [5, 6, 5], frameRate: 4, repeat: 0 },
-      { key: `_knocked`, frames: [10], frameRate: 6, repeat: 0 },
+      { key: `_punch`, frames: [5, 6, 5], frameRate: 4, repeat: 0 },
+      { key: `_punch_up`, frames: [11, 12, 13], frameRate: 10, repeat: 0 },
+      { key: `_knocked`, frames: [10], frameRate: 3, repeat: 0 },
       { key: `_guard`, frames: [11], frameRate: 6, repeat: 0 }
     ]
   }

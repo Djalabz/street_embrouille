@@ -16,6 +16,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   punchHitBox: Phaser.GameObjects.Rectangle;
   punchUpHitBox: Phaser.GameObjects.Rectangle;
 
+  step: number = 0;
+
   constructor(params, playerNumber) {
     super(params.scene, params.x, params.x, params.texture, params.frame);
 
@@ -91,6 +93,14 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         repeat: anim.repeat,
         frameRate: anim.frameRate
       });
+    });
+
+    this.scene.anims.create({
+      key: `${this.playerTexture}_blood`,
+      frames: this.scene.anims.generateFrameNumbers("blood", {
+        frames: [0, 1, 2, 3, 4]
+      }),
+      frameRate: 20
     });
   }
 
@@ -247,6 +257,37 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.scene[enemy].setDepth(0);
     this.scene[enemy]["life"] += -50;
     this.scene[enemy].anims.play(`${this.scene[enemy].playerTexture}_knocked`);
+    this.pushPlayer(enemy, 2, 20, 4);
+    new Phaser.Physics.Arcade.Sprite(this.scene, 200, 200, "blood");
+  }
+
+  /**
+   * Will push a player, its a looped method where you can set in detail
+   *
+   * @param enemy the enemy key string
+   * @param velocity distance the enemy is traveling beetwen each step
+   * @param distance overall distance the enemy will travel
+   * @param speed speed between each steps
+   */
+  pushPlayer(
+    enemy: string,
+    velocity: number,
+    distance: number,
+    speed: number
+  ): void {
+    const MaxPushStep = distance;
+
+    if (this.step === MaxPushStep || this.flipX === this.scene[enemy].flipX) {
+      this.step = 0;
+      return;
+    }
+
+    this.scene[enemy].x = this.scene[enemy].flipX
+      ? this.scene[enemy].x + velocity
+      : this.scene[enemy].x - velocity;
+
+    this.step++;
+    setTimeout(() => this.pushPlayer(enemy, velocity, distance, speed), speed);
   }
 
   generateHitBoxes(): void {
