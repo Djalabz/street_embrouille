@@ -29,6 +29,9 @@ export class MainGame extends Phaser.Scene {
     canvas.style.width = (height * ratio) + 'px';
     canvas.style.height = height + 'px';
 }
+
+    window.onresize = this.resize;
+
 }
 
   create(): void {
