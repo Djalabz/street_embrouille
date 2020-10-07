@@ -18,7 +18,23 @@ export class MainGame extends Phaser.Scene {
     this.ground = null;
   }
 
+  resize() {
+    var canvas = this.game.canvas, width = window.innerWidth, height = window.innerHeight;
+    var wratio = width / height, ratio = canvas.width / canvas.height;
+
+    if (wratio < ratio) {
+    canvas.style.width = width + 'px';
+    canvas.style.height = (width / ratio) + 'px';
+    } else {
+    canvas.style.width = (height * ratio) + 'px';
+    canvas.style.height = height + 'px';
+}
+}
+
   create(): void {
+    window.addEventListener('resize', this.resize);
+    this.resize();
+
     this.music = this.sound.add("music", { loop: true });
     this.music.play();
 
